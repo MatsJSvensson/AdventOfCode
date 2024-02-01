@@ -14,99 +14,60 @@ text = f.read()
 lines = text.split('\n')
 blueprints = {}
 for line in lines:
-    blueprint_id = line.split(':')[0].split(' ')[1]
+    blueprint_id = int(line.split(':')[0].split(' ')[1])
     parts = line.split('robot costs ')
     ore = parts[1].split('.')[0]
     clay = parts[2].split('.')[0]
     obsidian = parts[3].split('.')[0]
     geode = parts[4]. split('.')[0]
+    ore_cost = [int(ore.split(' ')[0]), 0, 0, 0]
+    clay_cost = [int(clay.split(' ')[0]), 0, 0, 0]
+    obsidian_parts = obsidian.split(' and ')
+    obsidian_cost = [int(obsidian_parts[0].split(' ')[0]), int(obsidian_parts[1].split(' ')[0]), 0, 0]
+    geode_parts = geode.split(' and ')
+    geode_cost = [int(geode_parts[0].split(' ')[0]), 0, int(geode_parts[1].split(' ')[0]), 0]
+    blueprints[blueprint_id] = [ore_cost, clay_cost, obsidian_cost, geode_cost]
 
 
 def main():
-    a_sum = 0
-    for zz in range(len(map_3D)-1):
-        for yy in range(len(map_3D[zz])-1):
-            for xx in range(len(map_3D[zz][yy])-1):
-                if map_3D[zz][yy][xx] == '#':
-                    if zz != 0:
-                        if map_3D[zz-1][yy][xx] == '.':
-                            a_sum += 1
-                    else:
-                        a_sum += 1
-                    if yy != 0:
-                        if map_3D[zz][yy-1][xx] == '.':
-                            a_sum += 1
-                    else:
-                        a_sum += 1
-                    if xx != 0:
-                        if map_3D[zz][yy][xx-1] == '.':
-                            a_sum += 1
-                    else:
-                        a_sum += 1
-                    if map_3D[zz][yy][xx+1] == '.':
-                        a_sum += 1
-                    if map_3D[zz][yy+1][xx] == '.':
-                        a_sum += 1
-                    if map_3D[zz+1][yy][xx] == '.':
-                        a_sum += 1
-    print(a_sum)
-    for n in range(max_range*2):
-        for zz in range(len(map_3D)):
-            for yy in range(len(map_3D[zz])):
-                for xx in range(len(map_3D[zz][yy])):
-                    if map_3D[zz][yy][xx] == '.':
-                        if zz == 0:
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif map_3D[zz-1][yy][xx] == '-':
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif yy == 0:
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif map_3D[zz][yy-1][xx] == '-':
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif xx == 0:
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif map_3D[zz][yy][xx-1] == '-':
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif xx == max_range-1:
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif map_3D[zz][yy][xx+1] == '-':
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif yy == max_range-1:
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif map_3D[zz][yy+1][xx] == '-':
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif zz == max_range-1:
-                            set_point(map_3D, xx, yy, zz, '-')
-                        elif map_3D[zz+1][yy][xx] == '-':
-                            set_point(map_3D, xx, yy, zz, '-')
+    robots = [1, 0, 0, 0]
+    resources = [0, 0, 0, 0]
+    test_counter = [0]
+    print(recursive(0, robots, resources, 0, 1, test_counter))
+    print(test_counter)
 
-    a_sum = 0
-    for zz in range(len(map_3D) - 1):
-        for yy in range(len(map_3D[zz]) - 1):
-            for xx in range(len(map_3D[zz][yy]) - 1):
-                if map_3D[zz][yy][xx] == '#':
-                    if zz != 0:
-                        if map_3D[zz - 1][yy][xx] == '-':
-                            a_sum += 1
-                    else:
-                        a_sum += 1
-                    if yy != 0:
-                        if map_3D[zz][yy - 1][xx] == '-':
-                            a_sum += 1
-                    else:
-                        a_sum += 1
-                    if xx != 0:
-                        if map_3D[zz][yy][xx - 1] == '-':
-                            a_sum += 1
-                    else:
-                        a_sum += 1
-                    if map_3D[zz][yy][xx + 1] == '-':
-                        a_sum += 1
-                    if map_3D[zz][yy + 1][xx] == '-':
-                        a_sum += 1
-                    if map_3D[zz + 1][yy][xx] == '-':
-                        a_sum += 1
-    print(a_sum)
+
+def recursive(time, robots, resources, next_target, blueprint, test_counter):
+    test_counter[0] += 1
+    for n in range(time, 24):
+        afford = True
+        for x in range(4):
+            if resources[x] < blueprints[blueprint][next_target][x]:
+                afford = False
+            resources[x] += robots[x]
+        if afford:
+            robots[next_target] += 1
+            for x in range(4):
+                resources[x] -= blueprints[blueprint][next_target][x]
+            new_robots = robots.copy()
+            new_resources = resources.copy()
+            results = []
+            results.append(recursive(n+1, new_robots, new_resources, 0, blueprint, test_counter))
+
+            new_robots = robots.copy()
+            new_resources = resources.copy()
+            results.append(recursive(n + 1, new_robots, new_resources, 1, blueprint, test_counter))
+            if robots[1] > 0:
+                new_robots = robots.copy()
+                new_resources = resources.copy()
+                results.append(recursive(n + 1, new_robots, new_resources, 2, blueprint, test_counter))
+            if robots[2] > 0:
+                new_robots = robots.copy()
+                new_resources = resources.copy()
+                results.append(recursive(n + 1, new_robots, new_resources, 3, blueprint, test_counter))
+            return max(results)
+    print(resources)
+    return resources[3]
 
 
 if __name__ == "__main__":
