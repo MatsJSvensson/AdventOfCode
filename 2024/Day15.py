@@ -34,6 +34,7 @@ def main():
                 new_row += '##'
             elif a_map[y][x] == 'O':
                 new_row += '[]'
+        new_map.append(new_row)
 
     pos = [x0, y0]
     for step in steps:
@@ -46,12 +47,13 @@ def main():
         if step == 'v':
             pos = move(pos, [0, 1], new_map, '@')
 
-    print(step)
-    print_map(a_map)
+    print_map(new_map)
     print('\n')
+    new_width = len(new_map[0])
+    new_height = len(new_map)
 
-    for y in range(height):
-        for x in range(width):
+    for y in range(new_height):
+        for x in range(new_width):
             if new_map[y][x] == '[':
                 the_sum += x + 100 * y
 
@@ -61,21 +63,68 @@ def main():
 def move(pos, step, a_map, char):
     x = pos[0] + step[0]
     y = pos[1] + step[1]
+    char2 = a_map[y][x]
 
-    if a_map[y][x] == '.':
+    if char2 == '.':
         set_point(a_map, x, y, char)
         set_point(a_map, pos[0], pos[1], '.')
         return [x, y]
-    if a_map[y][x] == '#':
+    if char2 == '#':
         return pos
-    if a_map[y][x] == '[':
-        move([x, y], step, a_map, '[')
-        if a_map[y][x] == 'O':
-            return pos
+    if char2 == '[':
+        if step[1] == 0:
+            move([x, y], step, a_map, char2)
+            if a_map[y][x] == '.':
+                set_point(a_map, x, y, char)
+                set_point(a_map, pos[0], pos[1], '.')
+                return [x, y]
+            else:
+                return pos
         else:
-            set_point(a_map, x, y, char)
-            set_point(a_map, pos[0], pos[1], '.')
-            return [x, y]
+            if can_move([x,y], step, a_map) and can_move([x+1,y], step, a_map):
+                move([x, y], step, a_map, '[')
+                move([x+1, y], step, a_map, ']')
+                set_point(a_map, x, y, char)
+                set_point(a_map, pos[0], pos[1], '.')
+                return [x, y]
+            else:
+                return pos
+    if char2 == ']':
+        if step[1] == 0:
+            move([x, y], step, a_map, char2)
+            if a_map[y][x] == '.':
+                set_point(a_map, x, y, char)
+                set_point(a_map, pos[0], pos[1], '.')
+                return [x, y]
+            else:
+                return pos
+        else:
+            if can_move([x,y], step, a_map) and can_move([x-1,y], step, a_map):
+                move([x-1, y], step, a_map, '[')
+                move([x, y], step, a_map, ']')
+                set_point(a_map, x, y, char)
+                set_point(a_map, pos[0], pos[1], '.')
+                return [x, y]
+            else:
+                return pos
+
+
+def can_move(pos, step, a_map):
+    x = pos[0] + step[0]
+    y = pos[1] + step[1]
+
+    if a_map[y][x] == '.':
+        return True
+    if a_map[y][x] == '#':
+        return False
+    if a_map[y][x] in '[]':
+        if a_map[y][x] == '[':
+            left = can_move([x, y], step, a_map)
+            right = can_move([x+1, y], step, a_map)
+        else:
+            left = can_move([x-1, y], step, a_map)
+            right = can_move([x, y], step, a_map)
+        return left and right
 
 
 def compare_maps(map1, map2):

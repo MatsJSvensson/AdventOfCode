@@ -19,3 +19,8 @@ def print_map(a_map):
 
 def set_point(a_map, x, y, char):
     a_map[y] = a_map[y][:x] + char + a_map[y][x+1:]
+
+
+def dijkstra(a_map, start, goal):
+    visited = {'0_0': 0}
+

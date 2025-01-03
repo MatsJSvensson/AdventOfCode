@@ -5,7 +5,7 @@ import os, os.path
 import math
 import aoc_utils as utils
 
-f = open("input18.txt", "r")
+f = open("input20.txt", "r")
 text = f.read()
 lines = text.split('\n')
 falling = [x.split(',') for x in lines]
