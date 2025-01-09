@@ -43,6 +43,35 @@ def main():
         step3 = []
         for s in step2:
             step3.extend(pad_translator([2, 0], s, keypad))
+        # print(step3)
+
+        num = int(code.replace('A', ''))
+        lengths = [len(x) for x in step3]
+        length = min(lengths)
+        the_sum += length * num
+    print(the_sum)
+
+    memo_map = {}
+    the_sum = 0
+    for code in codes:
+        print(code)
+        step1 = pad_translator([2, 3], code, numpad)
+        print(step1)
+        step2 = []
+        for s in step1:
+            commands = split_command(s)
+            new_command = ''
+            for command in commands:
+                new_command += keypad_translator([2, 0], command, True, memo_map)
+            step2.append(new_command)
+        print(step2)
+        step3 = []
+        for s in step2:
+            commands = split_command(s)
+            new_command = ''
+            for command in commands:
+                new_command += keypad_translator([2, 0], command, True, memo_map)
+            step3.append(new_command)
         print(step3)
 
         num = int(code.replace('A', ''))
@@ -50,6 +79,13 @@ def main():
         length = min(lengths)
         the_sum += length * num
     print(the_sum)
+
+
+def split_command(s):
+    s_list = s.split('A')
+    res = [x + 'A' for x in s_list]
+    l = len(res)
+    return res[:l-1]
 
 
 def pad_translator(start, code, pad):
@@ -88,25 +124,29 @@ def pad_translator(start, code, pad):
     return new_codes
 
 
-def keypad_translator(start, code):
+def keypad_translator(start, code, save, memo_map):
+    if code in memo_map.keys():
+        return memo_map[code]
     char = code[0]
     pos = keypad[char]
     x = pos[0] - start[0]
     y = pos[1] - start[1]
     new_code = ''
+    if x < 0:
+        new_code += '<' * abs(x)
+    if y > 0:
+        new_code += 'v' * y
     if x > 0:
         new_code += '>' * x
     if y < 0:
         new_code += '^' * abs(y)
-    if y > 0:
-        new_code += 'v' * y
-    if x < 0:
-        new_code += '<' * abs(x)
 
     new_code += 'A'
 
     if len(code) > 1:
-        new_code += keypad_translator(pos, code[1:])
+        new_code += keypad_translator(pos, code[1:], False, memo_map)
+    if save:
+        memo_map[code] = new_code
     return new_code
 
 
